@@ -3,87 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Red Tiger</title>
+    <title>Red Tiger - Python Console</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Courier New', monospace;
         }
 
         body {
-            background: linear-gradient(135deg, #1a0000 0%, #330000 50%, #1a0000 100%);
-            color: #fff;
+            background: #0d0d0d;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(90deg, #1a0000, #330000);
+            padding: 15px 20px;
+            border-bottom: 2px solid #ff4444;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            overflow: hidden;
         }
 
-        .container {
-            text-align: center;
-            z-index: 10;
-            max-width: 600px;
-        }
-
-        h1 {
-            font-size: 4rem;
-            margin-bottom: 20px;
+        .header h1 {
             color: #ff4444;
-            text-shadow: 0 0 20px #ff4444, 0 0 40px #ff0000;
-            font-weight: bold;
-        }
-
-        p {
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            color: #ccc;
-        }
-
-        a {
-            display: inline-block;
-            padding: 12px 30px;
-            margin: 10px;
-            background: rgba(255, 68, 68, 0.2);
-            border: 2px solid #ff4444;
-            color: #ff4444;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
-
-        a:hover {
-            background: rgba(255, 68, 68, 0.4);
-            box-shadow: 0 0 20px #ff4444;
+            text-shadow: 0 0 10px #ff4444;
+            font-size: 1.5rem;
         }
 
         .back-link {
-            position: fixed;
-            top: 20px;
-            left: 20px;
             padding: 8px 16px;
             background: rgba(255, 68, 68, 0.1);
             border: 1px solid #ff4444;
             color: #ff4444;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 3px;
             font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
         }
 
         .back-link:hover {
             background: rgba(255, 68, 68, 0.2);
+            box-shadow: 0 0 10px #ff4444;
+        }
+
+        .console-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .console {
+            flex: 1;
+            background: #000;
+            border: 1px solid #ff4444;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.2);
+        }
+
+        .console-line {
+            margin: 5px 0;
+            word-wrap: break-word;
+        }
+
+        .input-line {
+            color: #0f0;
+        }
+
+        .output-line {
+            color: #0f0;
+        }
+
+        .error-line {
+            color: #ff6666;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-section label {
+            color: #ff4444;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        input {
+            flex: 1;
+            background: #000;
+            border: 1px solid #ff4444;
+            color: #0f0;
+            padding: 10px 15px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus {
+            box-shadow: 0 0 10px #ff4444;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            cursor: pointer;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: rgba(255, 68, 68, 0.4);
+            box-shadow: 0 0 10px #ff4444;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .clear-btn {
+            width: 100px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ff4444;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff6666;
         }
     </style>
 </head>
 <body>
-    <a href="/" class="back-link">← Back</a>
-    
-    <div class="container">
-        <h1>RED TIGER</h1>
-        <p>Welcome to the Red Tiger domain</p>
-        <a href="https://discord.com" target="_blank">Join Discord</a>
+    <div class="header">
+        <h1>RED TIGER - Python Console</h1>
+        <a href="/" class="back-link">← Back</a>
     </div>
+
+    <div class="console-container">
+        <div class="console" id="console">
+            <div class="console-line" style="color: #ff4444;">
+                Red Tiger Python Console v1.0
+            </div>
+            <div class="console-line" style="color: #888;">
+                Type Python commands and press Enter
+            </div>
+            <div class="console-line"></div>
+        </div>
+
+        <div class="input-section">
+            <label>>>> </label>
+            <input type="text" id="commandInput" placeholder="Enter Python command" autofocus>
+            <button class="clear-btn" onclick="clearConsole()">Clear</button>
+        </div>
+    </div>
+
+    <script>
+        const console_el = document.getElementById('console');
+        const input_el = document.getElementById('commandInput');
+        const history = [];
+        let historyIndex = -1;
+
+        // Mock Python commands for demo
+        const mockCommands = {
+            'help': 'Available commands: help, clear, time, info, python, version\nUse "python" to test Python commands',
+            'clear': '',
+            'time': new Date().toLocaleString(),
+            'info': 'Red Tiger Tools - Advanced Python Console\nVersion: 1.0',
+            'python': 'Python 3.9.0 - Type commands',
+            'version': '1.0.0'
+        };
+
+        input_el.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const command = input_el.value.trim();
+                if (command) {
+                    executeCommand(command);
+                    history.push(command);
+                    historyIndex = history.length;
+                    input_el.value = '';
+                }
+            }
+        });
+
+        input_el.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    input_el.value = history[historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex < history.length - 1) {
+                    historyIndex++;
+                    input_el.value = history[historyIndex];
+                } else {
+                    input_el.value = '';
+                    historyIndex = history.length;
+                }
+            }
+        });
+
+        function executeCommand(command) {
+            addLine(`>>> ${command}`, 'input-line');
+
+            if (command === 'clear') {
+                clearConsole();
+                return;
+            }
+
+            if (mockCommands[command]) {
+                addLine(mockCommands[command], 'output-line');
+            } else if (command.startsWith('echo ')) {
+                addLine(command.substring(5), 'output-line');
+            } else if (command === 'ls' || command === 'dir') {
+                addLine('[redtiger.html, index.html, script.js, style.css]', 'output-line');
+            } else {
+                addLine(`Error: Unknown command '${command}'`, 'error-line');
+                addLine(`Type 'help' for available commands`, 'error-line');
+            }
+            addLine('');
+            console_el.scrollTop = console_el.scrollHeight;
+        }
+
+        function addLine(text, className = 'console-line') {
+            const line = document.createElement('div');
+            line.className = className;
+            line.textContent = text;
+            console_el.appendChild(line);
+        }
+
+        function clearConsole() {
+            console_el.innerHTML = '';
+            addLine('Console cleared', 'output-line');
+            addLine('');
+        }
+    </script>
 </body>
 </html>
