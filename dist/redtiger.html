@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Red Tiger - Terminal</title>
+    <title>Red Tiger</title>
     <style>
         * {
             margin: 0;
@@ -12,149 +12,35 @@
         }
 
         body {
-            background: #0d0d0d;
+            background: #000;
             color: #0f0;
             font-family: 'Courier New', monospace;
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-        }
-
-        .header {
-            background: linear-gradient(90deg, #1a0000, #330000);
-            padding: 15px 20px;
-            border-bottom: 2px solid #ff4444;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            color: #ff4444;
-            text-shadow: 0 0 10px #ff4444;
-            font-size: 1.5rem;
-        }
-
-        .status {
-            color: #888;
-            font-size: 0.9rem;
-        }
-
-        .status.ready {
-            color: #0f0;
-        }
-
-        .back-link {
-            padding: 8px 16px;
-            background: rgba(255, 68, 68, 0.1);
-            border: 1px solid #ff4444;
-            color: #ff4444;
-            text-decoration: none;
-            border-radius: 3px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .back-link:hover {
-            background: rgba(255, 68, 68, 0.2);
-            box-shadow: 0 0 10px #ff4444;
-        }
-
-        .console-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            overflow: hidden;
         }
 
         .console {
             flex: 1;
-            background: #000;
-            border: 1px solid #ff4444;
-            border-radius: 5px;
-            padding: 15px;
+            padding: 20px;
             overflow-y: auto;
-            margin-bottom: 15px;
             font-size: 14px;
             line-height: 1.6;
-            box-shadow: 0 0 20px rgba(255, 68, 68, 0.2);
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        .console-line {
-            margin: 1px 0;
-        }
-
-        .input-line {
-            color: #0f0;
-        }
-
-        .output-line {
-            color: #0f0;
-        }
-
-        .error-line {
-            color: #ff6666;
-        }
-
-        .warning-line {
-            color: #ffaa00;
-        }
-
-        .input-section {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .input-section label {
-            color: #ff4444;
-            font-weight: bold;
-            white-space: nowrap;
         }
 
         input {
-            flex: 1;
+            width: calc(100% - 40px);
+            margin: 0 20px 20px;
             background: #000;
-            border: 1px solid #ff4444;
+            border: 1px solid #0f0;
             color: #0f0;
-            padding: 10px 15px;
-            border-radius: 3px;
+            padding: 8px 12px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
-            outline: none;
         }
 
         input:focus {
-            box-shadow: 0 0 10px #ff4444;
-        }
-
-        button {
-            padding: 10px 20px;
-            background: rgba(255, 68, 68, 0.2);
-            border: 1px solid #ff4444;
-            color: #ff4444;
-            cursor: pointer;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        button:hover {
-            background: rgba(255, 68, 68, 0.4);
-            box-shadow: 0 0 10px #ff4444;
-        }
-
-        button:active {
-            transform: scale(0.95);
-        }
-
-        .clear-btn {
-            width: 100px;
+            outline: none;
         }
 
         ::-webkit-scrollbar {
@@ -166,91 +52,27 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #ff4444;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #ff6666;
+            background: #0f0;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>RED TIGER - Terminal</h1>
-        <div style="display: flex; gap: 20px; align-items: center;">
-            <span class="status" id="status">Loading...</span>
-            <a href="/" class="back-link">← Back</a>
-        </div>
-    </div>
-
-    <div class="console-container">
-        <div class="console" id="console">
-            <div class="console-line" style="color: #ff4444;">
-                Red Tiger Terminal v1.0
-            </div>
-            <div class="console-line" style="color: #888;">
-                Initializing Python environment...
-            </div>
-        </div>
-
-        <div class="input-section">
-            <label>>>> </label>
-            <input type="text" id="commandInput" placeholder="Enter command" disabled>
-            <button class="clear-btn" onclick="clearConsole()" disabled id="clearBtn">Clear</button>
-        </div>
-    </div>
+    <div class="console" id="console"></div>
+    <input type="text" id="commandInput" placeholder=">>> " autofocus>
 
     <script async src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script>
         let pyodide = null;
         const console_el = document.getElementById('console');
         const input_el = document.getElementById('commandInput');
-        const clearBtn = document.getElementById('clearBtn');
-        const status = document.getElementById('status');
         const history = [];
         let historyIndex = -1;
-
-        const REDTIGER_MENU = `
-print("\\n" + "="*70)
-print("RED TIGER - Advanced Security Toolkit v1.0")
-print("="*70)
-print("\\n[1] WEBSITE TOOLS")
-print("    01. Website-Vulnerability-Scanner")
-print("    02. Website-Info-Scanner")
-print("    03. Website-Url-Scanner")
-print("\\n[2] IP TOOLS")
-print("    04. Ip-Scanner")
-print("    05. Ip-Port-Scanner")
-print("    06. Ip-Pinger")
-print("\\n[3] TRACKER & INFO")
-print("    10. D0x-Create")
-print("    11. D0x-Tracker")
-print("    12. Get-Image-Exif")
-print("    13. Google-Dorking")
-print("    14. Username-Tracker")
-print("    15. Email-Tracker")
-print("\\n[4] ATTACK TOOLS")
-print("    20. Phishing-Attack")
-print("    21. Password-Zip-Cracked-Attack")
-print("    22. Password-Hash-Decrypted-Attack")
-print("\\n[5] DISCORD TOOLS")
-print("    50. Discord-Token-Nuker")
-print("    51. Discord-Token-Info")
-print("    52. Discord-Token-Joiner")
-print("\\n[6] ROBLOX TOOLS")
-print("    40. Roblox-Cookie-Login")
-print("    41. Roblox-Cookie-Info")
-print("    42. Roblox-Id-Info")
-print("\\nType 'help' for commands, 'exit' to quit")
-print("="*70 + "\\n")
-`;
 
         async function initPython() {
             try {
                 pyodide = await loadPyodide();
                 
-                // Redirect stdout/stderr
+                // Redirect stdout
                 await pyodide.runPythonAsync(`
 import sys
 from io import StringIO
@@ -267,46 +89,12 @@ sys.stdout = OutputCapture()
 sys.stderr = OutputCapture()
 `);
                 
-                addLine('✓ Python environment initialized', 'output-line');
-                
-                // Try to load RedTiger.py
-                try {
-                    const response = await fetch('./RedTiger-Tools/RedTiger.py');
-                    if (response.ok) {
-                        const code = await response.text();
-                        await pyodide.runPythonAsync(code);
-                        addLine('✓ RedTiger.py loaded successfully', 'output-line');
-                    } else {
-                        addLine('⚠ RedTiger.py not found, showing menu...', 'warning-line');
-                        await pyodide.runPythonAsync(REDTIGER_MENU);
-                    }
-                } catch (e) {
-                    addLine(`⚠ Could not load RedTiger.py: ${e.message}`, 'warning-line');
-                    addLine('Showing menu instead...', 'warning-line');
-                    await pyodide.runPythonAsync(REDTIGER_MENU);
-                }
-                
-                // Get captured output
-                let output = await pyodide.runPythonAsync('import sys; "".join(_output)');
-                if (output) {
-                    addLine(output, 'output-line');
-                }
-                
-                await pyodide.runPythonAsync('_output.clear()');
-                
-                addLine('✓ Ready for input', 'output-line');
-                addLine('');
+                addLine('Red Tiger Terminal Ready');
+                addLine('Type "help" for commands\n');
                 
                 input_el.disabled = false;
-                clearBtn.disabled = false;
-                status.textContent = 'Ready';
-                status.classList.add('ready');
-                
-                input_el.focus();
-                console_el.scrollTop = console_el.scrollHeight;
             } catch (e) {
-                addLine(`Error: ${e.message}`, 'error-line');
-                status.textContent = 'Error initializing Python';
+                addLine(`Error: ${e.message}`);
             }
         }
 
@@ -342,52 +130,40 @@ sys.stderr = OutputCapture()
         });
 
         async function executeCommand(command) {
-            addLine(`>>> ${command}`, 'input-line');
+            addLine(`>>> ${command}`);
 
             if (!pyodide) {
-                addLine('Python not ready', 'error-line');
-                addLine('');
+                addLine('Python not ready');
                 return;
             }
 
             try {
                 await pyodide.runPythonAsync('_output.clear()');
                 
-                if (command === 'exit') {
-                    addLine('Goodbye!', 'output-line');
-                    input_el.disabled = true;
-                    clearBtn.disabled = true;
-                    return;
-                }
-                
                 let result = await pyodide.runPythonAsync(command);
                 
                 let output = await pyodide.runPythonAsync('import sys; "".join(_output)');
                 
                 if (output && output.trim()) {
-                    addLine(output, 'output-line');
+                    addLine(output);
                 } else if (result !== undefined && result !== null && result.toString().trim()) {
-                    addLine(result.toString(), 'output-line');
+                    addLine(result.toString());
                 }
             } catch (error) {
-                addLine(`Error: ${error.message}`, 'error-line');
+                addLine(`Error: ${error.message}`);
             }
             
             addLine('');
             console_el.scrollTop = console_el.scrollHeight;
         }
 
-        function addLine(text, className = 'console-line') {
-            const line = document.createElement('div');
-            line.className = className;
-            line.textContent = text;
-            console_el.appendChild(line);
-        }
-
-        function clearConsole() {
-            console_el.innerHTML = '';
-            addLine('Console cleared', 'output-line');
-            addLine('');
+        function addLine(text) {
+            const lines = text.split('\n');
+            for (const line of lines) {
+                const div = document.createElement('div');
+                div.textContent = line;
+                console_el.appendChild(div);
+            }
         }
 
         window.addEventListener('load', initPython);
