@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
 
-  const startMessage = "Click here to see the motion baby";
+  const startMessage = "FUCK OFF MY PROFILE AND KYS";
   let startTextContent = '';
   let startIndex = 0;
   let startCursorVisible = true;
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
       startTextContent = startMessage.slice(0, startIndex + 1);
       startIndex++;
     }
-    startText.textContent = startTextContent + (startCursorVisible ? '|' : ' ');
+    startText.textContent = startTextContent + (startCursorVisible ? 'hi' : 'ur so unlocky');
     setTimeout(typeWriterStart, 100);
   }
 
@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 
-  const name = "JAQLIV";
+  const name = "Collector";
   let nameText = '';
   let nameIndex = 0;
   let isNameDeleting = false;
@@ -236,8 +236,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   const bioMessages = [
-    "Fu*k Guns.lol & Fakecrime.bio got banned too often, so I created my own.",
-    "\"Hello, World!\""
+    "I MADE THIS",
+    "kinda",
+    "i am a roblox developer",
+    "i own https://serveryy.vercel.app/",
+    "i code exp scripts",
+    "i dont EXP on games"
   ];
   let bioText = '';
   let bioIndex = 0;
@@ -359,22 +363,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let primaryColor;
     switch (themeClass) {
       case 'home-theme':
-        primaryColor = '#00CED1';
+        primaryColor = '#ffffff';
         break;
       case 'hacker-theme':
-        primaryColor = '#22C55E';
+        primaryColor = '#ffffff';
         break;
       case 'rain-theme':
-        primaryColor = '#1E3A8A';
+        primaryColor = '#ffffff';
         break;
       case 'anime-theme':
-        primaryColor = '#DC2626';
+        primaryColor = '#ffffff';
         break;
       case 'car-theme':
-        primaryColor = '#EAB308';
+        primaryColor = '#ffffff';
         break;
       default:
-        primaryColor = '#00CED1';
+        primaryColor = '#ffffff';
     }
     document.documentElement.style.setProperty('--primary-color', primaryColor);
 
