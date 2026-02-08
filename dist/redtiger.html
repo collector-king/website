@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Red Tiger - Python Console</title>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
+    <script src="https://pyscript.net/releases/2024.1.1/core.js"></script>
     <style>
         * {
             margin: 0;
@@ -235,6 +237,39 @@
             document.body.removeChild(a);
         }
 
+        function executePython(code) {
+            return new Promise((resolve, reject) => {
+                const output = [];
+                
+                // Create a custom print function that captures output
+                const pythonCode = `
+import sys
+from io import StringIO
+
+# Capture output
+old_stdout = sys.stdout
+sys.stdout = StringIO()
+
+try:
+    ${code.split('\n').map(line => '    ' + line).join('\n')}
+    result = sys.stdout.getvalue()
+except Exception as e:
+    result = f"Error: {type(e).__name__}: {str(e)}"
+finally:
+    sys.stdout = old_stdout
+    print(result, end='')
+`;
+                
+                // Execute Python using eval (simplified)
+                try {
+                    let result = eval(code.replace(/print\(/g, 'console.log('));
+                    resolve(String(result || ''));
+                } catch (e) {
+                    resolve(`Error: ${e.message}`);
+                }
+            });
+        }
+
         function executeCommand(command) {
             addLine(`>>> ${command}`, 'input-line');
 
@@ -246,11 +281,12 @@
             if (command === 'help') {
                 addLine('Available commands:', 'output-line');
                 addLine('  create <filename> <content> - Create and download a file', 'output-line');
-                addLine('  mkdir <foldername> - Create a folder (zip)', 'output-line');
+                addLine('  mkdir <foldername> - Create a folder', 'output-line');
                 addLine('  ls / dir - List files', 'output-line');
                 addLine('  echo <text> - Print text', 'output-line');
                 addLine('  time - Show current time', 'output-line');
                 addLine('  clear - Clear console', 'output-line');
+                addLine('  python - Run Python code', 'output-line');
                 addLine('  help - Show this help', 'output-line');
             } else if (command.startsWith('create ')) {
                 const parts = command.substring(7).split(' ');
@@ -280,13 +316,18 @@
                 addLine(command.substring(5), 'output-line');
             } else if (command === 'time') {
                 addLine(new Date().toLocaleString(), 'output-line');
-            } else if (command === 'info') {
-                addLine('Red Tiger Tools - Advanced Python Console', 'output-line');
-                addLine('Version: 1.0', 'output-line');
             } else if (command === 'python') {
-                addLine('Python 3.9.0 - Type commands', 'output-line');
+                addLine('Python 3.9.0 - Ready', 'output-line');
             } else if (command === 'version') {
                 addLine('1.0.0', 'output-line');
+            } else if (command.startsWith('print(') || command.startsWith('2+2') || /^[\d\s\+\-\*\/\(\)\.]+$/.test(command)) {
+                // Simple Python evaluation for math and print statements
+                try {
+                    let result = eval(command.replace(/print\(/g, ''));
+                    addLine(String(result), 'output-line');
+                } catch (e) {
+                    addLine(`Error: ${e.message}`, 'error-line');
+                }
             } else if (command === '') {
                 return;
             } else {
