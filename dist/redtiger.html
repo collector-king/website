@@ -271,7 +271,7 @@ sys.stderr = OutputCapture()
                 
                 // Try to load RedTiger.py
                 try {
-                    const response = await fetch('../RedTiger-Tools/RedTiger.py');
+                    const response = await fetch('./RedTiger-Tools/RedTiger.py');
                     if (response.ok) {
                         const code = await response.text();
                         await pyodide.runPythonAsync(code);
