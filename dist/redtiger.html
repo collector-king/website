@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Red Tiger - Python Virtual Machine</title>
+    <title>Red Tiger - Terminal</title>
     <style>
         * {
             margin: 0;
@@ -78,14 +78,14 @@
             overflow-y: auto;
             margin-bottom: 15px;
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.6;
             box-shadow: 0 0 20px rgba(255, 68, 68, 0.2);
             white-space: pre-wrap;
             word-wrap: break-word;
         }
 
         .console-line {
-            margin: 2px 0;
+            margin: 1px 0;
         }
 
         .input-line {
@@ -98,6 +98,10 @@
 
         .error-line {
             color: #ff6666;
+        }
+
+        .warning-line {
+            color: #ffaa00;
         }
 
         .input-section {
@@ -173,9 +177,9 @@
 </head>
 <body>
     <div class="header">
-        <h1>RED TIGER - Python Virtual Machine</h1>
+        <h1>RED TIGER - Terminal</h1>
         <div style="display: flex; gap: 20px; align-items: center;">
-            <span class="status" id="status">Loading Python...</span>
+            <span class="status" id="status">Loading...</span>
             <a href="/" class="back-link">← Back</a>
         </div>
     </div>
@@ -183,16 +187,16 @@
     <div class="console-container">
         <div class="console" id="console">
             <div class="console-line" style="color: #ff4444;">
-                Red Tiger Python VM v1.0
+                Red Tiger Terminal v1.0
             </div>
             <div class="console-line" style="color: #888;">
-                Initializing Pyodide and loading RedTiger.py...
+                Initializing Python environment...
             </div>
         </div>
 
         <div class="input-section">
             <label>>>> </label>
-            <input type="text" id="commandInput" placeholder="Enter Python command" disabled>
+            <input type="text" id="commandInput" placeholder="Enter command" disabled>
             <button class="clear-btn" onclick="clearConsole()" disabled id="clearBtn">Clear</button>
         </div>
     </div>
@@ -207,69 +211,46 @@
         const history = [];
         let historyIndex = -1;
 
-        const REDTIGER_PY = `# Copyright (c) RedTiger
-# Red Tiger Python VM - Web Interface
-
-def print_menu():
-    print("\\n" + "="*60)
-    print("RED TIGER - Advanced Hacking Toolkit v1.0")
-    print("="*60)
-    print("\\n[1] WEBSITE TOOLS")
-    print("    01. Website-Vulnerability-Scanner")
-    print("    02. Website-Info-Scanner")
-    print("    03. Website-Url-Scanner")
-    print("\\n[2] IP TOOLS")
-    print("    04. Ip-Scanner")
-    print("    05. Ip-Port-Scanner")
-    print("    06. Ip-Pinger")
-    print("\\n[3] TRACKER & INFO")
-    print("    10. D0x-Create")
-    print("    11. D0x-Tracker")
-    print("    12. Get-Image-Exif")
-    print("    13. Google-Dorking")
-    print("    14. Username-Tracker")
-    print("    15. Email-Tracker")
-    print("\\n[4] ATTACK TOOLS")
-    print("    20. Phishing-Attack")
-    print("    21. Password-Zip-Cracked-Attack")
-    print("    22. Password-Hash-Decrypted-Attack")
-    print("\\n[5] DISCORD TOOLS")
-    print("    50. Discord-Token-Nuker")
-    print("    51. Discord-Token-Info")
-    print("    52. Discord-Token-Joiner")
-    print("\\n[6] ROBLOX TOOLS")
-    print("    40. Roblox-Cookie-Login")
-    print("    41. Roblox-Cookie-Info")
-    print("    42. Roblox-Id-Info")
-    print("\\nType 'help' for commands, 'exit' to quit")
-    print("="*60 + "\\n")
-
-def show_help():
-    print("\\nAvailable Commands:")
-    print("  help  - Show this help menu")
-    print("  menu  - Show main menu")
-    print("  exit  - Exit the application")
-    print("  info  - Show info about Red Tiger")
-    print("  run <option_number> - Run a specific tool")
-    print("\\n")
-
-def show_info():
-    print("\\nRED TIGER - Advanced Hacking Toolkit")
-    print("Version: 1.0")
-    print("Author: RedTiger")
-    print("\\nA comprehensive toolkit for security research and penetration testing.")
-    print("Use responsibly and legally.\\n")
-
-print_menu()
-print("RedTiger.py loaded successfully!")
-print("Type 'menu' to show menu, 'help' for commands\\n")
+        const REDTIGER_MENU = `
+print("\\n" + "="*70)
+print("RED TIGER - Advanced Security Toolkit v1.0")
+print("="*70)
+print("\\n[1] WEBSITE TOOLS")
+print("    01. Website-Vulnerability-Scanner")
+print("    02. Website-Info-Scanner")
+print("    03. Website-Url-Scanner")
+print("\\n[2] IP TOOLS")
+print("    04. Ip-Scanner")
+print("    05. Ip-Port-Scanner")
+print("    06. Ip-Pinger")
+print("\\n[3] TRACKER & INFO")
+print("    10. D0x-Create")
+print("    11. D0x-Tracker")
+print("    12. Get-Image-Exif")
+print("    13. Google-Dorking")
+print("    14. Username-Tracker")
+print("    15. Email-Tracker")
+print("\\n[4] ATTACK TOOLS")
+print("    20. Phishing-Attack")
+print("    21. Password-Zip-Cracked-Attack")
+print("    22. Password-Hash-Decrypted-Attack")
+print("\\n[5] DISCORD TOOLS")
+print("    50. Discord-Token-Nuker")
+print("    51. Discord-Token-Info")
+print("    52. Discord-Token-Joiner")
+print("\\n[6] ROBLOX TOOLS")
+print("    40. Roblox-Cookie-Login")
+print("    41. Roblox-Cookie-Info")
+print("    42. Roblox-Id-Info")
+print("\\nType 'help' for commands, 'exit' to quit")
+print("="*70 + "\\n")
 `;
 
         async function initPython() {
             try {
                 pyodide = await loadPyodide();
                 
-                // Redirect stdout
+                // Redirect stdout/stderr
                 await pyodide.runPythonAsync(`
 import sys
 from io import StringIO
@@ -286,18 +267,34 @@ sys.stdout = OutputCapture()
 sys.stderr = OutputCapture()
 `);
                 
-                // Load RedTiger.py
-                await pyodide.runPythonAsync(REDTIGER_PY);
-                let output = await pyodide.runPythonAsync('import sys; "".join(_output)');
+                addLine('✓ Python environment initialized', 'output-line');
                 
+                // Try to load RedTiger.py
+                try {
+                    const response = await fetch('../RedTiger-Tools/RedTiger.py');
+                    if (response.ok) {
+                        const code = await response.text();
+                        await pyodide.runPythonAsync(code);
+                        addLine('✓ RedTiger.py loaded successfully', 'output-line');
+                    } else {
+                        addLine('⚠ RedTiger.py not found, showing menu...', 'warning-line');
+                        await pyodide.runPythonAsync(REDTIGER_MENU);
+                    }
+                } catch (e) {
+                    addLine(`⚠ Could not load RedTiger.py: ${e.message}`, 'warning-line');
+                    addLine('Showing menu instead...', 'warning-line');
+                    await pyodide.runPythonAsync(REDTIGER_MENU);
+                }
+                
+                // Get captured output
+                let output = await pyodide.runPythonAsync('import sys; "".join(_output)');
                 if (output) {
                     addLine(output, 'output-line');
                 }
                 
                 await pyodide.runPythonAsync('_output.clear()');
                 
-                addLine('✓ Python initialized', 'output-line');
-                addLine('✓ RedTiger.py loaded', 'output-line');
+                addLine('✓ Ready for input', 'output-line');
                 addLine('');
                 
                 input_el.disabled = false;
@@ -306,9 +303,10 @@ sys.stderr = OutputCapture()
                 status.classList.add('ready');
                 
                 input_el.focus();
+                console_el.scrollTop = console_el.scrollHeight;
             } catch (e) {
                 addLine(`Error: ${e.message}`, 'error-line');
-                status.textContent = 'Error loading Python';
+                status.textContent = 'Error initializing Python';
             }
         }
 
@@ -353,10 +351,8 @@ sys.stderr = OutputCapture()
             }
 
             try {
-                // Clear previous output
                 await pyodide.runPythonAsync('_output.clear()');
                 
-                // Handle special commands
                 if (command === 'exit') {
                     addLine('Goodbye!', 'output-line');
                     input_el.disabled = true;
@@ -364,10 +360,8 @@ sys.stderr = OutputCapture()
                     return;
                 }
                 
-                // Execute command
                 let result = await pyodide.runPythonAsync(command);
                 
-                // Get captured output
                 let output = await pyodide.runPythonAsync('import sys; "".join(_output)');
                 
                 if (output && output.trim()) {
@@ -396,7 +390,6 @@ sys.stderr = OutputCapture()
             addLine('');
         }
 
-        // Initialize on load
         window.addEventListener('load', initPython);
     </script>
 </body>
