@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Red Tiger - Python Console</title>
-    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css">
-    <script src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <title>Red Tiger - Python Virtual Machine</title>
     <style>
         * {
             margin: 0;
@@ -35,6 +33,15 @@
             color: #ff4444;
             text-shadow: 0 0 10px #ff4444;
             font-size: 1.5rem;
+        }
+
+        .status {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .status.ready {
+            color: #0f0;
         }
 
         .back-link {
@@ -73,11 +80,12 @@
             font-size: 14px;
             line-height: 1.5;
             box-shadow: 0 0 20px rgba(255, 68, 68, 0.2);
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         .console-line {
-            margin: 5px 0;
-            word-wrap: break-word;
+            margin: 2px 0;
         }
 
         .input-line {
@@ -165,37 +173,79 @@
 </head>
 <body>
     <div class="header">
-        <h1>RED TIGER - Python Console</h1>
-        <a href="/" class="back-link">← Back</a>
+        <h1>RED TIGER - Python Virtual Machine</h1>
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <span class="status" id="status">Loading Python...</span>
+            <a href="/" class="back-link">← Back</a>
+        </div>
     </div>
 
     <div class="console-container">
         <div class="console" id="console">
             <div class="console-line" style="color: #ff4444;">
-                Red Tiger Python Console v1.0
+                Red Tiger Python VM v1.0
             </div>
             <div class="console-line" style="color: #888;">
-                Type Python commands and press Enter
+                Initializing Pyodide...
             </div>
-            <div class="console-line"></div>
         </div>
 
         <div class="input-section">
             <label>>>> </label>
-            <input type="text" id="commandInput" placeholder="Enter Python command" autofocus>
-            <button class="clear-btn" onclick="clearConsole()">Clear</button>
+            <input type="text" id="commandInput" placeholder="Enter Python command" disabled>
+            <button class="clear-btn" onclick="clearConsole()" disabled id="clearBtn">Clear</button>
         </div>
     </div>
 
+    <script async src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script>
+        let pyodide = null;
         const console_el = document.getElementById('console');
         const input_el = document.getElementById('commandInput');
+        const clearBtn = document.getElementById('clearBtn');
+        const status = document.getElementById('status');
         const history = [];
         let historyIndex = -1;
-        const files = {};
+
+        async function initPython() {
+            try {
+                pyodide = await loadPyodide();
+                
+                // Add custom print redirection
+                await pyodide.runPythonAsync(`
+import sys
+from io import StringIO
+
+_output = []
+
+class OutputCapture:
+    def write(self, text):
+        _output.append(text)
+    def flush(self):
+        pass
+
+sys.stdout = OutputCapture()
+sys.stderr = OutputCapture()
+`);
+                
+                addLine('✓ Python initialized', 'output-line');
+                addLine('✓ Ready for commands', 'output-line');
+                addLine('');
+                
+                input_el.disabled = false;
+                clearBtn.disabled = false;
+                status.textContent = 'Ready';
+                status.classList.add('ready');
+                
+                input_el.focus();
+            } catch (e) {
+                addLine(`Error initializing Python: ${e.message}`, 'error-line');
+                status.textContent = 'Error loading Python';
+            }
+        }
 
         input_el.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !input_el.disabled) {
                 const command = input_el.value.trim();
                 if (command) {
                     executeCommand(command);
@@ -225,115 +275,36 @@
             }
         });
 
-        function downloadFile(filename, content) {
-            const blob = new Blob([content], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-        }
-
-        function executePython(code) {
-            return new Promise((resolve, reject) => {
-                const output = [];
-                
-                // Create a custom print function that captures output
-                const pythonCode = `
-import sys
-from io import StringIO
-
-# Capture output
-old_stdout = sys.stdout
-sys.stdout = StringIO()
-
-try:
-    ${code.split('\n').map(line => '    ' + line).join('\n')}
-    result = sys.stdout.getvalue()
-except Exception as e:
-    result = f"Error: {type(e).__name__}: {str(e)}"
-finally:
-    sys.stdout = old_stdout
-    print(result, end='')
-`;
-                
-                // Execute Python using eval (simplified)
-                try {
-                    let result = eval(code.replace(/print\(/g, 'console.log('));
-                    resolve(String(result || ''));
-                } catch (e) {
-                    resolve(`Error: ${e.message}`);
-                }
-            });
-        }
-
-        function executeCommand(command) {
+        async function executeCommand(command) {
             addLine(`>>> ${command}`, 'input-line');
 
-            if (command === 'clear') {
-                clearConsole();
+            if (!pyodide) {
+                addLine('Python not ready', 'error-line');
+                addLine('');
                 return;
             }
 
-            if (command === 'help') {
-                addLine('Available commands:', 'output-line');
-                addLine('  create <filename> <content> - Create and download a file', 'output-line');
-                addLine('  mkdir <foldername> - Create a folder', 'output-line');
-                addLine('  ls / dir - List files', 'output-line');
-                addLine('  echo <text> - Print text', 'output-line');
-                addLine('  time - Show current time', 'output-line');
-                addLine('  clear - Clear console', 'output-line');
-                addLine('  python - Run Python code', 'output-line');
-                addLine('  help - Show this help', 'output-line');
-            } else if (command.startsWith('create ')) {
-                const parts = command.substring(7).split(' ');
-                if (parts.length < 2) {
-                    addLine('Usage: create <filename> <content>', 'error-line');
-                } else {
-                    const filename = parts[0];
-                    const content = parts.slice(1).join(' ');
-                    files[filename] = content;
-                    downloadFile(filename, content);
-                    addLine(`✓ File '${filename}' created and downloading...`, 'output-line');
+            try {
+                // Clear previous output
+                await pyodide.runPythonAsync('_output.clear()');
+                
+                // Execute command
+                let result = await pyodide.runPythonAsync(command);
+                
+                // Get captured output
+                let output = await pyodide.runPythonAsync('import sys; "".join(_output)');
+                
+                if (output && output.trim()) {
+                    addLine(output, 'output-line');
                 }
-            } else if (command.startsWith('mkdir ')) {
-                const foldername = command.substring(6).trim();
-                if (!foldername) {
-                    addLine('Usage: mkdir <foldername>', 'error-line');
-                } else {
-                    files[foldername] = '[FOLDER]';
-                    addLine(`✓ Folder '${foldername}' created`, 'output-line');
+                
+                if (result !== undefined && result !== null && result.toString().trim()) {
+                    addLine(result.toString(), 'output-line');
                 }
-            } else if (command === 'ls' || command === 'dir') {
-                const fileList = Object.keys(files).length > 0 
-                    ? Object.keys(files).join(', ')
-                    : '[empty]';
-                addLine(fileList, 'output-line');
-            } else if (command.startsWith('echo ')) {
-                addLine(command.substring(5), 'output-line');
-            } else if (command === 'time') {
-                addLine(new Date().toLocaleString(), 'output-line');
-            } else if (command === 'python') {
-                addLine('Python 3.9.0 - Ready', 'output-line');
-            } else if (command === 'version') {
-                addLine('1.0.0', 'output-line');
-            } else if (command.startsWith('print(') || command.startsWith('2+2') || /^[\d\s\+\-\*\/\(\)\.]+$/.test(command)) {
-                // Simple Python evaluation for math and print statements
-                try {
-                    let result = eval(command.replace(/print\(/g, ''));
-                    addLine(String(result), 'output-line');
-                } catch (e) {
-                    addLine(`Error: ${e.message}`, 'error-line');
-                }
-            } else if (command === '') {
-                return;
-            } else {
-                addLine(`Error: Unknown command '${command}'`, 'error-line');
-                addLine(`Type 'help' for available commands`, 'error-line');
+            } catch (error) {
+                addLine(`Error: ${error.message}`, 'error-line');
             }
+            
             addLine('');
             console_el.scrollTop = console_el.scrollHeight;
         }
@@ -350,6 +321,9 @@ finally:
             addLine('Console cleared', 'output-line');
             addLine('');
         }
+
+        // Initialize on load
+        window.addEventListener('load', initPython);
     </script>
 </body>
 </html>
