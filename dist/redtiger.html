@@ -190,16 +190,7 @@
         const input_el = document.getElementById('commandInput');
         const history = [];
         let historyIndex = -1;
-
-        // Mock Python commands for demo
-        const mockCommands = {
-            'help': 'Available commands: help, clear, time, info, python, version\nUse "python" to test Python commands',
-            'clear': '',
-            'time': new Date().toLocaleString(),
-            'info': 'Red Tiger Tools - Advanced Python Console\nVersion: 1.0',
-            'python': 'Python 3.9.0 - Type commands',
-            'version': '1.0.0'
-        };
+        const files = {};
 
         input_el.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
@@ -232,6 +223,18 @@
             }
         });
 
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
         function executeCommand(command) {
             addLine(`>>> ${command}`, 'input-line');
 
@@ -240,12 +243,52 @@
                 return;
             }
 
-            if (mockCommands[command]) {
-                addLine(mockCommands[command], 'output-line');
+            if (command === 'help') {
+                addLine('Available commands:', 'output-line');
+                addLine('  create <filename> <content> - Create and download a file', 'output-line');
+                addLine('  mkdir <foldername> - Create a folder (zip)', 'output-line');
+                addLine('  ls / dir - List files', 'output-line');
+                addLine('  echo <text> - Print text', 'output-line');
+                addLine('  time - Show current time', 'output-line');
+                addLine('  clear - Clear console', 'output-line');
+                addLine('  help - Show this help', 'output-line');
+            } else if (command.startsWith('create ')) {
+                const parts = command.substring(7).split(' ');
+                if (parts.length < 2) {
+                    addLine('Usage: create <filename> <content>', 'error-line');
+                } else {
+                    const filename = parts[0];
+                    const content = parts.slice(1).join(' ');
+                    files[filename] = content;
+                    downloadFile(filename, content);
+                    addLine(`✓ File '${filename}' created and downloading...`, 'output-line');
+                }
+            } else if (command.startsWith('mkdir ')) {
+                const foldername = command.substring(6).trim();
+                if (!foldername) {
+                    addLine('Usage: mkdir <foldername>', 'error-line');
+                } else {
+                    files[foldername] = '[FOLDER]';
+                    addLine(`✓ Folder '${foldername}' created`, 'output-line');
+                }
+            } else if (command === 'ls' || command === 'dir') {
+                const fileList = Object.keys(files).length > 0 
+                    ? Object.keys(files).join(', ')
+                    : '[empty]';
+                addLine(fileList, 'output-line');
             } else if (command.startsWith('echo ')) {
                 addLine(command.substring(5), 'output-line');
-            } else if (command === 'ls' || command === 'dir') {
-                addLine('[redtiger.html, index.html, script.js, style.css]', 'output-line');
+            } else if (command === 'time') {
+                addLine(new Date().toLocaleString(), 'output-line');
+            } else if (command === 'info') {
+                addLine('Red Tiger Tools - Advanced Python Console', 'output-line');
+                addLine('Version: 1.0', 'output-line');
+            } else if (command === 'python') {
+                addLine('Python 3.9.0 - Type commands', 'output-line');
+            } else if (command === 'version') {
+                addLine('1.0.0', 'output-line');
+            } else if (command === '') {
+                return;
             } else {
                 addLine(`Error: Unknown command '${command}'`, 'error-line');
                 addLine(`Type 'help' for available commands`, 'error-line');
